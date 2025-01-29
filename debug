@@ -1,0 +1,52 @@
+// EventCard.js
+function EventCard({ event }) {
+    if (!event || !event.title || !event.date) {
+        return <div>Invalid Event Data</div>;
+    }
+    return (
+        <div>
+            <h3>{event.title}</h3>
+            <p>{event.date}</p>
+            <p>{event.location}</p>
+        </div>
+    );
+}
+// App.js or Routes.js
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+
+function App() {
+    return (
+        <Router>
+            <Switch>
+                <Route exact path="/" component={HomePage} />
+                <Route path="/event/:id" component={EventPage} />
+                <Route path="/404" component={NotFoundPage} />
+                <Redirect to="/404" />
+            </Switch>
+        </Router>
+    );
+}
+// EventList.js
+import { useState, useEffect } from 'react';
+
+function EventList({ events }) {
+    const [visibleEvents, setVisibleEvents] = useState([]);
+    const [page, setPage] = useState(1);
+    const eventsPerPage = 10;
+
+    useEffect(() => {
+        const start = (page - 1) * eventsPerPage;
+        const end = start + eventsPerPage;
+        setVisibleEvents(events.slice(start, end));
+    }, [page, events]);
+
+    return (
+        <div>
+            {visibleEvents.map(event => (
+                <EventCard key={event.id} event={event} />
+            ))}
+            <button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button>
+            <button disabled={page * eventsPerPage >= events.length} onClick={() => setPage(page + 1)}>Next</button>
+        </div>
+    );
+}
