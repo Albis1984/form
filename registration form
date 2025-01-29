@@ -1,0 +1,94 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+// Context for User Session
+const UserContext = createContext();
+
+export const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    return JSON.parse(localStorage.getItem('user')) || null;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('user', JSON.stringify(user));
+  }, [user]);
+
+  return (
+    <UserContext.Provider value={{ user, setUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+export const useUser = () => useContext(UserContext);
+
+// Registration Form Component
+const RegistrationForm = () => {
+  const { setUser } = useUser();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name || !email) {
+      setError('Both fields are required.');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError('Invalid email format.');
+      return;
+    }
+    setUser({ name, email });
+    setError('');
+  };
+
+  return (
+    <div>
+      <h2>Register</h2>
+      <form onSubmit={handleSubmit}>
+        <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <button type="submit">Register</button>
+      </form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
+  );
+};
+
+export default RegistrationForm;
+
+// Attendance Tracker Component
+const AttendanceTracker = () => {
+  const { user } = useUser();
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+
+  const handleCheckIn = () => {
+    setIsCheckedIn(true);
+  };
+
+  const handleCheckOut = () => {
+    setIsCheckedIn(false);
+  };
+
+  return (
+    <div>
+      <h2>Attendance Tracker</h2>
+      {user ? (
+        <div>
+          <p>Welcome, {user.name}!</p>
+          <button onClick={handleCheckIn} disabled={isCheckedIn}>Check In</button>
+          <button onClick={handleCheckOut} disabled={!isCheckedIn}>Check Out</button>
+          <p>Status: {isCheckedIn ? 'Checked In' : 'Checked Out'}</p>
+        </div>
+      ) : (
+        <p>Please register first.</p>
+      )}
+    </div>
+  );
+};
+
+export { AttendanceTracker };
